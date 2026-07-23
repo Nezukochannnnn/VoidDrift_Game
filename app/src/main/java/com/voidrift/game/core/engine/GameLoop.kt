@@ -13,6 +13,9 @@ import kotlinx.coroutines.withContext
 import javax.inject.Inject
 import javax.inject.Singleton
 
+/** Callback type: receives deltaTime in seconds, returns the updated world. */
+typealias TickFn = (world: GameWorld, deltaTime: Float) -> GameWorld
+
 /**
  * [GameLoop] drives the frame-synchronized game tick on the Main dispatcher
  * using [withFrameNanos] (Choreographer-synced, no busy-spin).
@@ -23,8 +26,6 @@ import javax.inject.Singleton
 @Singleton
 class GameLoop @Inject constructor() {
 
-    /** Callback type: receives deltaTime in seconds, returns the updated world. */
-    typealias TickFn = (world: GameWorld, deltaTime: Float) -> GameWorld
 
     private var loopJob: Job? = null
 

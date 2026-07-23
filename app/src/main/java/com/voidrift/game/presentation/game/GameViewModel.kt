@@ -80,31 +80,29 @@ class GameViewModel @Inject constructor(
     // ── Game Loop ─────────────────────────────────────────────────────────────
 
     private suspend fun runGameLoop() {
-        withContext(Dispatchers.Main) {
-            var lastFrameNanos = 0L
-            while (_uiState.value is GameUiState.Playing) {
-                withFrameNanos { frameNanos ->
-                    val deltaTime = if (lastFrameNanos == 0L) 0f
-                    else (frameNanos - lastFrameNanos) / 1_000_000_000f
-                    lastFrameNanos = frameNanos
-                    val dt = deltaTime.coerceIn(0f, 0.05f)
+        var lastFrameNanos = System.nanoTime()
+        while (_uiState.value is GameUiState.Playing) {
+            val frameNanos = System.nanoTime()
+            val deltaTime = if (lastFrameNanos == 0L) 0f
+            else (frameNanos - lastFrameNanos) / 1_000_000_000f
+            lastFrameNanos = frameNanos
+            val dt = deltaTime.coerceIn(0f, 0.05f)
 
-                    _world.update { world ->
-                        world
-                            .tickVoidCorruption(dt)
-                            .tickTorchDecay(dt)
-                            .tickEnemyAI(dt)
-                            .let { collisionSystem.resolve(it) }
-                            .let { particleSystem.tick(it, dt) }
-                            .let { particleSystem.emitVoidSparks(it) }
-                            .let { particleSystem.emitTorchEmbers(it) }
-                            .checkWinLoss()
-                            .copy(elapsedSeconds = world.elapsedSeconds + dt)
-                    }
-
-                    evaluateOutcome()
-                }
+            _world.update { world ->
+                world
+                    .tickVoidCorruption(dt)
+                    .tickTorchDecay(dt)
+                    .tickEnemyAI(dt)
+                    .let { collisionSystem.resolve(it) }
+                    .let { particleSystem.tick(it, dt) }
+                    .let { particleSystem.emitVoidSparks(it) }
+                    .let { particleSystem.emitTorchEmbers(it) }
+                    .checkWinLoss()
+                    .copy(elapsedSeconds = world.elapsedSeconds + dt)
             }
+
+            evaluateOutcome()
+            kotlinx.coroutines.delay(16)
         }
     }
 

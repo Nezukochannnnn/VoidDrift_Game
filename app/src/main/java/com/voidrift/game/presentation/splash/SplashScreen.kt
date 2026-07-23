@@ -30,8 +30,8 @@ import androidx.compose.ui.unit.sp
 import com.voidrift.game.core.shaders.VoidSwirlShader
 import com.voidrift.game.ui.theme.NeonCyan
 import com.voidrift.game.ui.theme.VoidBackground
+import androidx.compose.runtime.withFrameNanos
 import kotlinx.coroutines.delay
-import kotlinx.coroutines.withFrameNanos
 
 @Composable
 fun SplashScreen(
@@ -108,7 +108,7 @@ fun SplashScreen(
             fontWeight    = FontWeight.Black,
             letterSpacing = 8.sp,
             modifier      = Modifier.graphicsLayer {
-                blendMode = BlendMode.Screen
+                // blendMode = BlendMode.Screen
                 shadowElevation = 24f
             }
         )

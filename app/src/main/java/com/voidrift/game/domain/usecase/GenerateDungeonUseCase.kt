@@ -161,7 +161,7 @@ class GenerateDungeonUseCase @Inject constructor() {
         carveCorridors(n.left!!, grid, rng); carveCorridors(n.right!!, grid, rng)
     }
 
-    private fun room(n: BspNode): BspRoom? = n.room ?: room(n.left ?: return null) ?: room(n.right ?: return null)
+    private fun room(n: BspNode): BspRoom? = n.room ?: n.left?.let { room(it) } ?: n.right?.let { room(it) }
     private fun collectRooms(n: BspNode, out: MutableList<BspRoom>) { n.room?.let { out.add(it) }; n.left?.let { collectRooms(it, out) }; n.right?.let { collectRooms(it, out) } }
 
     private fun hLine(grid: Array<Array<Tile>>, y: Int, x1: Int, x2: Int) {

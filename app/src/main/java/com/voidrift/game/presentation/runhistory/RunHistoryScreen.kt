@@ -53,8 +53,8 @@ import com.voidrift.game.ui.theme.TorchAmber
 import com.voidrift.game.ui.theme.VoidBackground
 import com.voidrift.game.ui.theme.VoidCorrupt
 import com.voidrift.game.ui.theme.VoidSurface
+import androidx.compose.runtime.withFrameNanos
 import kotlinx.coroutines.delay
-import kotlinx.coroutines.withFrameNanos
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale

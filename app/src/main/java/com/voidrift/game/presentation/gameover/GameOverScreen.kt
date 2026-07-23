@@ -46,7 +46,7 @@ import com.voidrift.game.ui.theme.TorchAmber
 import com.voidrift.game.ui.theme.VoidBackground
 import com.voidrift.game.ui.theme.VoidCorrupt
 import com.voidrift.game.ui.theme.VoidSurface
-import kotlinx.coroutines.withFrameNanos
+import androidx.compose.runtime.withFrameNanos
 
 @Composable
 fun GameOverScreen(
