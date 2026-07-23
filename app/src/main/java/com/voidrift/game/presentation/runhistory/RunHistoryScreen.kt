@@ -1,6 +1,12 @@
 package com.voidrift.game.presentation.runhistory
 
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.slideInHorizontally
+import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -10,6 +16,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -21,11 +28,17 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableFloatStateOf
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -40,6 +53,8 @@ import com.voidrift.game.ui.theme.TorchAmber
 import com.voidrift.game.ui.theme.VoidBackground
 import com.voidrift.game.ui.theme.VoidCorrupt
 import com.voidrift.game.ui.theme.VoidSurface
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.withFrameNanos
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
@@ -51,6 +66,12 @@ fun RunHistoryScreen(
 ) {
     val runs       by viewModel.runs.collectAsState()
     val deepestRun by viewModel.deepestRun.collectAsState()
+
+    var isVisible by remember { mutableStateOf(false) }
+    LaunchedEffect(Unit) {
+        delay(100)
+        isVisible = true
+    }
 
     Box(
         modifier = Modifier
@@ -101,22 +122,62 @@ fun RunHistoryScreen(
             Spacer(Modifier.height(8.dp))
 
             if (runs.isEmpty()) {
-                Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                    Text(
-                        "No runs yet. Enter the void.",
-                        color     = TextSecondary,
-                        fontSize  = 15.sp,
-                        letterSpacing = 1.sp
-                    )
-                }
+                // Empty state with small void swirl animation
+                EmptyHistoryView()
             } else {
                 LazyColumn(Modifier.fillMaxSize().padding(horizontal = 16.dp)) {
                     itemsIndexed(runs) { index, run ->
-                        RunCard(rank = index + 1, run = run)
+                        AnimatedVisibility(
+                            visible = isVisible,
+                            enter = slideInHorizontally(
+                                animationSpec = tween(durationMillis = 300 + index * 50),
+                                initialOffsetX = { fullWidth -> fullWidth }
+                            ) + fadeIn(animationSpec = tween(300 + index * 50))
+                        ) {
+                            RunCard(rank = index + 1, run = run)
+                        }
                         Spacer(Modifier.height(8.dp))
                     }
                 }
             }
+        }
+    }
+}
+
+@Composable
+private fun EmptyHistoryView() {
+    var timeSec by remember { mutableFloatStateOf(0f) }
+    LaunchedEffect(Unit) {
+        val startNanos = System.nanoTime()
+        while (true) {
+            withFrameNanos { frameNanos ->
+                timeSec = (frameNanos - startNanos) / 1_000_000_000f
+            }
+        }
+    }
+
+    Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+            Canvas(modifier = Modifier.size(80.dp)) {
+                val radius = size.minDimension / 2f
+                drawCircle(
+                    brush = Brush.radialGradient(
+                        colors = listOf(NeonPink.copy(alpha = 0.6f), Color.Transparent),
+                        center = center,
+                        radius = radius * (1f + 0.1f * kotlin.math.sin(timeSec * 3f))
+                    ),
+                    radius = radius,
+                    center = center
+                )
+            }
+            Spacer(Modifier.height(16.dp))
+            Text(
+                "NO RUNS YET. ENTER THE VOID.",
+                color         = TextSecondary,
+                fontSize      = 14.sp,
+                fontWeight    = FontWeight.Bold,
+                letterSpacing = 2.sp
+            )
         }
     }
 }
@@ -127,9 +188,17 @@ private fun RunCard(rank: Int, run: RunRecord) {
         .format(Date(run.timestamp))
 
     Card(
-        modifier = Modifier.fillMaxWidth(),
-        colors   = CardDefaults.cardColors(containerColor = VoidSurface),
-        shape    = RoundedCornerShape(12.dp)
+        modifier = Modifier
+            .fillMaxWidth()
+            .border(
+                width = 1.dp,
+                brush = Brush.horizontalGradient(
+                    colors = listOf(NeonCyan, Color.Transparent)
+                ),
+                shape = RoundedCornerShape(12.dp)
+            ),
+        colors = CardDefaults.cardColors(containerColor = VoidSurface),
+        shape  = RoundedCornerShape(12.dp)
     ) {
         Row(
             Modifier

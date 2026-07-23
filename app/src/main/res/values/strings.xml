@@ -1,3 +1,35 @@
 <resources>
     <string name="app_name">VOIDDRIFT</string>
+    <string name="tagline">THE VOID CLAIMS ALL</string>
+    <string name="btn_enter_void">ENTER THE VOID</string>
+    <string name="btn_run_history">RUN HISTORY</string>
+    <string name="btn_settings">SETTINGS</string>
+    <string name="btn_resume">RESUME</string>
+    <string name="btn_restart">RESTART</string>
+    <string name="btn_drift_again">DRIFT AGAIN</string>
+    <string name="btn_view_history">VIEW HISTORY</string>
+    <string name="btn_home">HOME</string>
+    <string name="btn_next_depth">NEXT DEPTH</string>
+    <string name="btn_wipe_data">WIPE ALL DATA</string>
+    <string name="game_over_title">VOID CLAIMS ALL</string>
+    <string name="room_cleared_title">VOID CLEARED</string>
+    <string name="paused_title">PAUSED</string>
+    <string name="history_title">RUN HISTORY</string>
+    <string name="settings_title">SETTINGS</string>
+    <string name="lbl_player_name">Player Name</string>
+    <string name="lbl_sound_effects">Sound Effects</string>
+    <string name="lbl_music">Music</string>
+    <string name="lbl_haptics">Haptic Feedback</string>
+    <string name="lbl_graphics_quality">Graphics Quality</string>
+    <string name="lbl_sfx_volume">SFX Volume</string>
+    <string name="lbl_runs">RUNS</string>
+    <string name="lbl_best_depth">BEST DEPTH</string>
+    <string name="lbl_top_score">TOP SCORE</string>
+    <string name="lbl_deepest_run">DEEPEST RUN</string>
+    <string name="empty_history">NO RUNS YET. ENTER THE VOID.</string>
+    <string name="confirm_wipe_title">Confirm Data Wipe</string>
+    <string name="confirm_wipe_msg">This will permanently delete all run records and profile stats. Continue?</string>
+    <string name="btn_confirm">Wipe Data</string>
+    <string name="btn_cancel">Cancel</string>
+    <string name="torch_fading_warning">⚠ TORCH FADING</string>
 </resources>

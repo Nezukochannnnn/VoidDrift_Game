@@ -3,6 +3,9 @@ package com.voiddrift.game.presentation
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.Surface
 import androidx.compose.ui.Modifier
@@ -13,6 +16,7 @@ import com.voidrift.game.presentation.game.GameScreen
 import com.voidrift.game.presentation.home.HomeScreen
 import com.voidrift.game.presentation.runhistory.RunHistoryScreen
 import com.voidrift.game.presentation.settings.SettingsScreen
+import com.voidrift.game.presentation.splash.SplashScreen
 import com.voidrift.game.ui.theme.VoidBackground
 import com.voidrift.game.ui.theme.VoidDriftTheme
 import dagger.hilt.android.AndroidEntryPoint
@@ -30,8 +34,22 @@ class MainActivity : ComponentActivity() {
                     val navController = rememberNavController()
                     NavHost(
                         navController = navController,
-                        startDestination = "home"
+                        startDestination = "splash",
+                        enterTransition = { fadeIn(animationSpec = tween(400)) },
+                        exitTransition = { fadeOut(animationSpec = tween(400)) },
+                        popEnterTransition = { fadeIn(animationSpec = tween(400)) },
+                        popExitTransition = { fadeOut(animationSpec = tween(400)) }
                     ) {
+                        composable("splash") {
+                            SplashScreen(
+                                onSplashFinished = {
+                                    navController.navigate("home") {
+                                        popUpTo("splash") { inclusive = true }
+                                    }
+                                }
+                            )
+                        }
+
                         composable("home") {
                             HomeScreen(
                                 onStartGame  = { navController.navigate("game") },
