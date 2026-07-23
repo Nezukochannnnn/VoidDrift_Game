@@ -1,12 +1,13 @@
 package com.voiddrift.game.presentation.model
 
-import com.voiddrift.game.domain.model.GameState
-import com.voiddrift.game.domain.model.ScoreRecord
-
-data class GameUiState(
-    val gameState: GameState = GameState(),
-    val highScore: ScoreRecord? = null,
-    val isShaderSupported: Boolean = false,
-    val currentFps: Int = 60,
-    val isGameOver: Boolean = false
-)
+/**
+ * Sealed class representing the overall UI state of the dungeon game screen.
+ * The game loop runs while [GameUiState] == [Playing].
+ */
+sealed class GameUiState {
+    data object Idle     : GameUiState()
+    data object Playing  : GameUiState()
+    data object Paused   : GameUiState()
+    data object GameOver : GameUiState()
+    data object RoomCleared : GameUiState()
+}

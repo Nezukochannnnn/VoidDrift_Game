@@ -4,6 +4,8 @@ import android.content.Context
 import androidx.room.Room
 import com.voiddrift.game.data.local.datastore.UserPreferencesDataStore
 import com.voiddrift.game.data.local.db.AppDatabase
+import com.voiddrift.game.data.local.db.PlayerProfileDao
+import com.voiddrift.game.data.local.db.RunRecordDao
 import com.voiddrift.game.data.local.db.ScoreDao
 import dagger.Module
 import dagger.Provides
@@ -32,6 +34,18 @@ object DatabaseModule {
     @Singleton
     fun provideScoreDao(appDatabase: AppDatabase): ScoreDao {
         return appDatabase.scoreDao()
+    }
+
+    @Provides
+    @Singleton
+    fun provideRunRecordDao(appDatabase: AppDatabase): RunRecordDao {
+        return appDatabase.runRecordDao()
+    }
+
+    @Provides
+    @Singleton
+    fun providePlayerProfileDao(appDatabase: AppDatabase): PlayerProfileDao {
+        return appDatabase.playerProfileDao()
     }
 
     @Provides
