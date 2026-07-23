@@ -36,6 +36,9 @@ object TorchMaskRenderer {
             drawIntoCanvas { canvas ->
                 val paint = Paint().apply {
                     setShader(shader)
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+                        blendMode = android.graphics.BlendMode.DST_IN
+                    }
                 }
                 canvas.nativeCanvas.drawRect(0f, 0f, size.width, size.height, paint)
             }

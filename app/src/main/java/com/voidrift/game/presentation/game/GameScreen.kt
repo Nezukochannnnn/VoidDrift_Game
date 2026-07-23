@@ -179,7 +179,7 @@ fun GameScreen(
             is GameUiState.RoomCleared -> {
                 RoomClearedOverlay(
                     world  = world,
-                    onNext = { viewModel.startNewRun() }
+                    onNext = { viewModel.startNewRun(depth = world.runDepth + 1) }
                 )
             }
 

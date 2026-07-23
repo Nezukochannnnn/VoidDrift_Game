@@ -39,7 +39,7 @@ private data class BspRoom(val x: Int, val y: Int, val w: Int, val h: Int) {
 class GenerateDungeonUseCase @Inject constructor() {
 
     companion object {
-        private const val MIN_LEAF = 5
+        private const val MIN_LEAF = 4
         private const val MARGIN   = 1
         private const val ENEMY_MIN = 2; private const val ENEMY_MAX = 5
         private const val CRYSTAL_MIN = 3; private const val CRYSTAL_MAX = 6
@@ -47,8 +47,8 @@ class GenerateDungeonUseCase @Inject constructor() {
 
     operator fun invoke(seed: Long, depth: Int = 1): GameWorld {
         val rng   = Random(seed)
-        val gridW = (8 + depth.coerceAtMost(8)).coerceIn(8, 16)
-        val gridH = (8 + depth.coerceAtMost(8)).coerceIn(8, 16)
+        val gridW = (12 + depth).coerceIn(12, 24)
+        val gridH = (12 + depth).coerceIn(12, 24)
 
         val grid = Array(gridH) { y -> Array(gridW) { x ->
             Tile(tileId = y * gridW + x, gridX = x, gridY = y, type = TileType.WALL)
@@ -63,10 +63,13 @@ class GenerateDungeonUseCase @Inject constructor() {
         collectRooms(root, rooms)
 
         val spawnRoom = rooms.first()
-        val exitRoom  = rooms.last()
+        val exitRoom  = if (rooms.size > 1) rooms.last() else spawnRoom
 
-        // Exit tile
-        grid[exitRoom.cy][exitRoom.cx] = grid[exitRoom.cy][exitRoom.cx].copy(type = TileType.EXIT)
+        // Exit tile (ensure it's not exactly on spawn if same room)
+        val exitY = if (exitRoom == spawnRoom) (exitRoom.y + exitRoom.h - 1) else exitRoom.cy
+        val exitX = if (exitRoom == spawnRoom) (exitRoom.x + exitRoom.w - 1) else exitRoom.cx
+        
+        grid[exitY][exitX] = grid[exitY][exitX].copy(type = TileType.EXIT)
 
         // BFS reachability guarantee
         if (!bfsReachable(grid, gridW, gridH, spawnRoom.cx, spawnRoom.cy, exitRoom.cx, exitRoom.cy)) {
@@ -113,7 +116,7 @@ class GenerateDungeonUseCase @Inject constructor() {
             widthInTiles  = gridW,
             heightInTiles = gridH,
             spawnPoint    = spawnPx,
-            exitTile      = exitRoom.cx to exitRoom.cy,
+            exitTile      = exitX to exitY,
             seed          = seed
         )
         return GameWorld(player = player, enemies = enemies, dungeon = dungeon, runDepth = depth)

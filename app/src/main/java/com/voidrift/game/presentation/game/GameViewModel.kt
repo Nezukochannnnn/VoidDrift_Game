@@ -43,12 +43,12 @@ class GameViewModel @Inject constructor(
 
     // ── Public API ────────────────────────────────────────────────────────────
 
-    fun startNewRun(seed: Long = Random.nextLong()) {
+    fun startNewRun(depth: Int = 1, seed: Long = Random.nextLong()) {
         currentSeed = seed
         runStartMs = System.currentTimeMillis()
         _uiState.value = GameUiState.Loading
         viewModelScope.launch(Dispatchers.Default) {
-            val initialWorld = startNewRunUseCase(seed = seed)
+            val initialWorld = startNewRunUseCase(depth = depth, seed = seed)
             _world.value = initialWorld
             _uiState.value = GameUiState.Playing(initialWorld)
             runGameLoop()
@@ -89,7 +89,8 @@ class GameViewModel @Inject constructor(
             val dt = deltaTime.coerceIn(0f, 0.05f)
 
             _world.update { world ->
-                world
+                val prevKilled = world.enemies.count { !it.isAlive }
+                val updatedWorld = world
                     .tickVoidCorruption(dt)
                     .tickTorchDecay(dt)
                     .tickEnemyAI(dt)
@@ -99,6 +100,18 @@ class GameViewModel @Inject constructor(
                     .let { particleSystem.emitTorchEmbers(it) }
                     .checkWinLoss()
                     .copy(elapsedSeconds = world.elapsedSeconds + dt)
+                
+                val currentKilled = updatedWorld.enemies.count { !it.isAlive }
+                val newKills = currentKilled - prevKilled
+                
+                if (newKills > 0) {
+                    updatedWorld.copy(
+                        killCount = updatedWorld.killCount + newKills,
+                        score = updatedWorld.score + (newKills * 100)
+                    )
+                } else {
+                    updatedWorld
+                }
             }
 
             evaluateOutcome()
@@ -185,12 +198,10 @@ private fun GameWorld.checkWinLoss(): GameWorld {
     val pgx = (player.position.x / tileSize).toInt()
     val pgy = (player.position.y / tileSize).toInt()
     val onExit = dungeon.exitTile.first == pgx && dungeon.exitTile.second == pgy
-    val cleared = enemies.none { it.isAlive } || onExit
-    val killed = enemies.count { !it.isAlive }
+    val cleared = onExit // Only clear on exit reaching
     return copy(
         isGameOver    = dead,
-        isRoomCleared = cleared && !dead,
-        killCount     = killCount + killed
+        isRoomCleared = cleared && !dead
     )
 }
 
