@@ -44,7 +44,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
-import com.voiddrift.game.R
+import com.voidrift.game.R
 import com.voidrift.game.ui.theme.DividerColor
 import com.voidrift.game.ui.theme.NeonCyan
 import com.voidrift.game.ui.theme.NeonPink

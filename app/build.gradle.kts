@@ -7,11 +7,11 @@ plugins {
 }
 
 android {
-    namespace = "com.voiddrift.game"
+    namespace = "com.voidrift.game"
     compileSdk = 35
 
     defaultConfig {
-        applicationId = "com.voiddrift.game"
+        applicationId = "com.voidrift.game"
         minSdk = 29
         targetSdk = 35
         versionCode = 1

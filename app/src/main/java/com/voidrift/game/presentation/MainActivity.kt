@@ -1,4 +1,4 @@
-package com.voiddrift.game.presentation
+package com.voidrift.game.presentation
 
 import android.os.Bundle
 import androidx.activity.ComponentActivity
