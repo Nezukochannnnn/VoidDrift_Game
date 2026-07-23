@@ -30,14 +30,15 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
-
-private val BG_TOP  = Color(0xFF05050F)
-private val BG_BOT  = Color(0xFF0A0015)
-private val CYAN    = Color(0xFF00E5FF)
-private val PURPLE  = Color(0xFFEA80FC)
-private val ORANGE  = Color(0xFFFF9800)
-private val GRAY    = Color(0xFF607D8B)
-private val DIV     = Color(0xFF1A1A2E)
+import com.voidrift.game.ui.theme.DividerColor
+import com.voidrift.game.ui.theme.NeonCyan
+import com.voidrift.game.ui.theme.NeonPink
+import com.voidrift.game.ui.theme.TextPrimary
+import com.voidrift.game.ui.theme.TextSecondary
+import com.voidrift.game.ui.theme.TorchAmber
+import com.voidrift.game.ui.theme.VoidBackground
+import com.voidrift.game.ui.theme.VoidCorrupt
+import com.voidrift.game.ui.theme.VoidSurfaceVariant
 
 @Composable
 fun SettingsScreen(
@@ -49,7 +50,7 @@ fun SettingsScreen(
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .background(Brush.verticalGradient(listOf(BG_TOP, BG_BOT)))
+            .background(Brush.verticalGradient(listOf(VoidBackground, VoidCorrupt, VoidBackground)))
     ) {
         Column(Modifier.fillMaxSize()) {
             // ── Header ────────────────────────────────────────────────────
@@ -60,36 +61,37 @@ fun SettingsScreen(
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 IconButton(onClick = onBack) {
-                    Icon(Icons.AutoMirrored.Filled.ArrowBack, "Back", tint = CYAN)
+                    Icon(Icons.AutoMirrored.Filled.ArrowBack, "Back", tint = NeonCyan)
                 }
                 Text(
                     "SETTINGS",
-                    color = PURPLE, fontSize = 22.sp,
-                    fontWeight = FontWeight.ExtraBold,
+                    color         = NeonPink,
+                    fontSize      = 22.sp,
+                    fontWeight    = FontWeight.ExtraBold,
                     letterSpacing = 4.sp
                 )
             }
 
             Spacer(Modifier.height(8.dp))
 
-            SettingsToggle(label = "Sound Effects", checked = state.sfxEnabled, tint = CYAN,
+            SettingsToggle(label = "Sound Effects", checked = state.sfxEnabled, tint = NeonCyan,
                 onToggle = { viewModel.toggleSfx() })
 
             SettingsDivider()
 
-            SettingsToggle(label = "Music", checked = state.musicEnabled, tint = ORANGE,
+            SettingsToggle(label = "Music", checked = state.musicEnabled, tint = TorchAmber,
                 onToggle = { viewModel.toggleMusic() })
 
             SettingsDivider()
 
-            SettingsToggle(label = "Screen Shake", checked = state.screenShakeEnabled, tint = PURPLE,
+            SettingsToggle(label = "Screen Shake", checked = state.screenShakeEnabled, tint = NeonPink,
                 onToggle = { viewModel.toggleShake() })
 
             SettingsDivider()
 
             // SFX Volume slider
             Column(Modifier.padding(horizontal = 24.dp, vertical = 12.dp)) {
-                Text("SFX VOLUME", color = GRAY, fontSize = 12.sp,
+                Text("SFX VOLUME", color = TextSecondary, fontSize = 12.sp,
                     fontWeight = FontWeight.Bold, letterSpacing = 2.sp)
                 Spacer(Modifier.height(8.dp))
                 Slider(
@@ -97,20 +99,19 @@ fun SettingsScreen(
                     onValueChange = { viewModel.setSfxVolume(it) },
                     valueRange    = 0f..1f,
                     colors = SliderDefaults.colors(
-                        thumbColor       = PURPLE,
-                        activeTrackColor = PURPLE,
-                        inactiveTrackColor = DIV
+                        thumbColor         = NeonCyan,
+                        activeTrackColor   = NeonCyan,
+                        inactiveTrackColor = VoidSurfaceVariant
                     )
                 )
             }
 
             SettingsDivider()
 
-            // Version label
             Spacer(Modifier.weight(1f))
             Text(
-                "VOIDRIFT v1.0.0  —  Dark Mode Only",
-                color     = GRAY.copy(alpha = 0.5f),
+                "VOIDRIFT v1.0.0  —  Material 3 Dark Theme Only",
+                color     = TextSecondary.copy(alpha = 0.5f),
                 fontSize  = 11.sp,
                 modifier  = Modifier
                     .align(Alignment.CenterHorizontally)
@@ -130,16 +131,15 @@ private fun SettingsToggle(
             .padding(horizontal = 24.dp, vertical = 12.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
-        Text(label, color = Color(0xFFCFD8DC),
-            fontSize = 15.sp, modifier = Modifier.weight(1f))
+        Text(label, color = TextPrimary, fontSize = 15.sp, modifier = Modifier.weight(1f))
         Switch(
             checked         = checked,
             onCheckedChange = { onToggle() },
             colors = SwitchDefaults.colors(
-                checkedThumbColor       = tint,
-                checkedTrackColor       = tint.copy(alpha = 0.3f),
-                uncheckedThumbColor     = Color(0xFF424242),
-                uncheckedTrackColor     = Color(0xFF1A1A1A)
+                checkedThumbColor   = tint,
+                checkedTrackColor   = tint.copy(alpha = 0.3f),
+                uncheckedThumbColor = TextSecondary,
+                uncheckedTrackColor = VoidSurfaceVariant
             )
         )
     }
@@ -147,5 +147,5 @@ private fun SettingsToggle(
 
 @Composable
 private fun SettingsDivider() {
-    Divider(color = DIV, thickness = 0.5.dp, modifier = Modifier.padding(horizontal = 16.dp))
+    Divider(color = DividerColor, thickness = 0.5.dp, modifier = Modifier.padding(horizontal = 16.dp))
 }

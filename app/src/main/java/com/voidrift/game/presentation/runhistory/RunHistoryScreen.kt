@@ -26,23 +26,23 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.voidrift.game.data.local.entity.RunRecord
+import com.voidrift.game.ui.theme.CrystalBlue
+import com.voidrift.game.ui.theme.NeonCyan
+import com.voidrift.game.ui.theme.NeonPink
+import com.voidrift.game.ui.theme.TextPrimary
+import com.voidrift.game.ui.theme.TextSecondary
+import com.voidrift.game.ui.theme.TorchAmber
+import com.voidrift.game.ui.theme.VoidBackground
+import com.voidrift.game.ui.theme.VoidCorrupt
+import com.voidrift.game.ui.theme.VoidSurface
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
-
-private val BG_TOP  = Color(0xFF05050F)
-private val BG_BOT  = Color(0xFF0A0015)
-private val CYAN    = Color(0xFF00E5FF)
-private val PURPLE  = Color(0xFFEA80FC)
-private val ORANGE  = Color(0xFFFF9800)
-private val CARD_BG = Color(0xFF0F0F22)
-private val GRAY    = Color(0xFF607D8B)
 
 @Composable
 fun RunHistoryScreen(
@@ -55,7 +55,7 @@ fun RunHistoryScreen(
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .background(Brush.verticalGradient(listOf(BG_TOP, BG_BOT)))
+            .background(Brush.verticalGradient(listOf(VoidBackground, VoidCorrupt, VoidBackground)))
     ) {
         Column(Modifier.fillMaxSize()) {
             // ── Header ────────────────────────────────────────────────────
@@ -66,13 +66,13 @@ fun RunHistoryScreen(
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 IconButton(onClick = onBack) {
-                    Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back",
-                        tint = CYAN)
+                    Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back", tint = NeonCyan)
                 }
                 Text(
                     "RUN HISTORY",
-                    color = PURPLE, fontSize = 22.sp,
-                    fontWeight = FontWeight.ExtraBold,
+                    color         = NeonPink,
+                    fontSize      = 22.sp,
+                    fontWeight    = FontWeight.ExtraBold,
                     letterSpacing = 4.sp
                 )
             }
@@ -82,20 +82,18 @@ fun RunHistoryScreen(
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(horizontal = 16.dp, vertical = 4.dp),
-                    colors = CardDefaults.cardColors(containerColor = Color(0xFF1A0030)),
+                    colors = CardDefaults.cardColors(containerColor = VoidCorrupt),
                     shape  = RoundedCornerShape(12.dp)
                 ) {
                     Row(
                         Modifier
                             .fillMaxWidth()
-                            .padding(12.dp),
+                            .padding(14.dp),
                         horizontalArrangement = Arrangement.SpaceBetween,
                         verticalAlignment = Alignment.CenterVertically
                     ) {
-                        Text("🏆 DEEPEST RUN", color = ORANGE,
-                            fontSize = 13.sp, fontWeight = FontWeight.Bold)
-                        Text("Depth ${best.depth}  •  ${best.score} pts",
-                            color = CYAN, fontSize = 13.sp, fontWeight = FontWeight.Bold)
+                        Text("🏆 DEEPEST RUN", color = TorchAmber, fontSize = 13.sp, fontWeight = FontWeight.Bold)
+                        Text("Depth ${best.depth}  •  ${best.score} pts", color = NeonCyan, fontSize = 13.sp, fontWeight = FontWeight.Bold)
                     }
                 }
             }
@@ -104,8 +102,12 @@ fun RunHistoryScreen(
 
             if (runs.isEmpty()) {
                 Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                    Text("No runs yet. Enter the void.", color = GRAY, fontSize = 16.sp,
-                        textAlign = androidx.compose.ui.text.style.TextAlign.Center)
+                    Text(
+                        "No runs yet. Enter the void.",
+                        color     = TextSecondary,
+                        fontSize  = 15.sp,
+                        letterSpacing = 1.sp
+                    )
                 }
             } else {
                 LazyColumn(Modifier.fillMaxSize().padding(horizontal = 16.dp)) {
@@ -126,7 +128,7 @@ private fun RunCard(rank: Int, run: RunRecord) {
 
     Card(
         modifier = Modifier.fillMaxWidth(),
-        colors   = CardDefaults.cardColors(containerColor = CARD_BG),
+        colors   = CardDefaults.cardColors(containerColor = VoidSurface),
         shape    = RoundedCornerShape(12.dp)
     ) {
         Row(
@@ -138,19 +140,16 @@ private fun RunCard(rank: Int, run: RunRecord) {
         ) {
             Column {
                 Row(verticalAlignment = Alignment.CenterVertically) {
-                    Text("#$rank ", color = GRAY, fontSize = 12.sp)
-                    Text("Depth ${run.depth}", color = PURPLE,
-                        fontSize = 15.sp, fontWeight = FontWeight.Bold)
+                    Text("#$rank ", color = TextSecondary, fontSize = 12.sp)
+                    Text("Depth ${run.depth}", color = NeonPink, fontSize = 15.sp, fontWeight = FontWeight.Bold)
                 }
-                Text(run.causeOfDeath, color = Color(0xFF9E9E9E), fontSize = 11.sp)
-                Text(date, color = GRAY, fontSize = 10.sp)
+                Text(run.causeOfDeath, color = TextPrimary.copy(alpha = 0.8f), fontSize = 11.sp)
+                Text(date, color = TextSecondary, fontSize = 10.sp)
             }
             Column(horizontalAlignment = Alignment.End) {
-                Text("${run.score}", color = CYAN,
-                    fontSize = 18.sp, fontWeight = FontWeight.ExtraBold)
-                Text("pts", color = GRAY, fontSize = 10.sp)
-                Text("☠ ${run.killCount}  ${run.durationSeconds.toInt()}s",
-                    color = ORANGE, fontSize = 11.sp)
+                Text("${run.score}", color = NeonCyan, fontSize = 18.sp, fontWeight = FontWeight.ExtraBold)
+                Text("pts", color = TextSecondary, fontSize = 10.sp)
+                Text("☠ ${run.killCount}  ${run.durationSeconds.toInt()}s", color = CrystalBlue, fontSize = 11.sp)
             }
         }
     }

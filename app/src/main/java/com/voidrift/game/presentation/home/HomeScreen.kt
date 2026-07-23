@@ -21,6 +21,7 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -29,21 +30,20 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
-
-private val BG_TOP    = Color(0xFF05050F)
-private val BG_MID    = Color(0xFF0A0020)
-private val BG_BOT    = Color(0xFF07000D)
-private val CYAN      = Color(0xFF00E5FF)
-private val PURPLE    = Color(0xFFEA80FC)
-private val ORANGE    = Color(0xFFFF9800)
-private val CARD_BG   = Color(0xFF0F0F22)
-private val VOID_RED  = Color(0xFFFF1744)
+import com.voidrift.game.ui.theme.NeonCyan
+import com.voidrift.game.ui.theme.NeonCyanContainer
+import com.voidrift.game.ui.theme.TextSecondary
+import com.voidrift.game.ui.theme.TorchAmber
+import com.voidrift.game.ui.theme.VoidBackground
+import com.voidrift.game.ui.theme.VoidCorrupt
+import com.voidrift.game.ui.theme.VoidSurface
+import com.voidrift.game.ui.theme.VoidSurfaceVariant
+import com.voidrift.game.ui.theme.voidColors
 
 @Composable
 fun HomeScreen(
@@ -52,21 +52,23 @@ fun HomeScreen(
     onRunHistory: () -> Unit = {},
     onSettings: () -> Unit = {}
 ) {
-    val state by viewModel.state.collectAsState()
+    val state    by viewModel.state.collectAsState()
+    val extended =  MaterialTheme.voidColors
 
-    val infiniteAnim = rememberInfiniteTransition(label = "title_pulse")
-    val titlePulse by infiniteAnim.animateFloat(
-        initialValue = 0.85f,
-        targetValue  = 1f,
-        animationSpec = infiniteRepeatable(tween(1800, easing = LinearEasing), RepeatMode.Reverse),
-        label = "title_alpha"
+    val pulse by rememberInfiniteTransition(label = "title_pulse").animateFloat(
+        initialValue  = 0.82f,
+        targetValue   = 1f,
+        animationSpec = infiniteRepeatable(tween(1600, easing = LinearEasing), RepeatMode.Reverse),
+        label         = "title_alpha"
     )
 
     Box(
         modifier = Modifier
             .fillMaxSize()
             .background(
-                Brush.verticalGradient(listOf(BG_TOP, BG_MID, BG_BOT))
+                Brush.verticalGradient(
+                    listOf(VoidBackground, VoidCorrupt, VoidBackground)
+                )
             )
     ) {
         Column(
@@ -76,94 +78,111 @@ fun HomeScreen(
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Center
         ) {
-            // ── Logo ──────────────────────────────────────────────────────
+
+            // ── Logo wordmark ─────────────────────────────────────────────
             Text(
-                text       = "✦ VOIDRIFT ✦",
-                color      = PURPLE.copy(alpha = titlePulse),
-                fontSize   = 42.sp,
-                fontWeight = FontWeight.ExtraBold,
-                letterSpacing = 6.sp,
-                textAlign  = TextAlign.Center
+                text          = "✦ VOIDRIFT ✦",
+                color         = extended.neonPink.copy(alpha = pulse),
+                fontSize      = 44.sp,
+                fontWeight    = FontWeight.Black,
+                letterSpacing = 7.sp,
+                textAlign     = TextAlign.Center
             )
             Text(
-                text       = "THE VOID CLAIMS ALL",
-                color      = CYAN.copy(alpha = 0.7f),
-                fontSize   = 13.sp,
-                letterSpacing = 4.sp,
-                textAlign  = TextAlign.Center
+                text          = "THE VOID CLAIMS ALL",
+                color         = NeonCyan.copy(alpha = 0.65f),
+                fontSize      = 12.sp,
+                letterSpacing = 5.sp,
+                textAlign     = TextAlign.Center
             )
 
-            Spacer(Modifier.height(36.dp))
+            Spacer(Modifier.height(40.dp))
 
-            // ── Player stats card ─────────────────────────────────────────
+            // ── Player profile card ───────────────────────────────────────
             state.profile?.let { profile ->
                 Card(
                     modifier = Modifier.fillMaxWidth(),
-                    colors   = CardDefaults.cardColors(containerColor = CARD_BG),
-                    shape    = RoundedCornerShape(14.dp)
+                    colors   = CardDefaults.cardColors(containerColor = VoidSurface),
+                    shape    = RoundedCornerShape(16.dp)
                 ) {
-                    Column(Modifier.padding(16.dp)) {
-                        Text("⚔  ${profile.playerName}", color = ORANGE,
-                            fontSize = 16.sp, fontWeight = FontWeight.Bold)
-                        Spacer(Modifier.height(8.dp))
-                        Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-                            StatItem("RUNS",      profile.totalRuns.toString())
-                            StatItem("BEST DEPTH", profile.bestDepth.toString())
-                            StatItem("TOP SCORE",  profile.bestScore.toString())
+                    Column(Modifier.padding(18.dp)) {
+                        Text(
+                            "⚔  ${profile.playerName}",
+                            color      = TorchAmber,
+                            style      = MaterialTheme.typography.titleMedium,
+                            fontWeight = FontWeight.ExtraBold
+                        )
+                        Spacer(Modifier.height(12.dp))
+                        Row(
+                            Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.SpaceBetween
+                        ) {
+                            StatChip("RUNS",       profile.totalRuns.toString())
+                            StatChip("DEPTH",      profile.bestDepth.toString())
+                            StatChip("TOP SCORE",  profile.bestScore.toString())
                         }
                     }
                 }
             }
 
-            Spacer(Modifier.height(32.dp))
+            Spacer(Modifier.height(36.dp))
 
-            // ── CTA buttons ───────────────────────────────────────────────
+            // ── Primary CTA ───────────────────────────────────────────────
             Button(
                 onClick  = onStartGame,
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(58.dp),
-                shape  = RoundedCornerShape(14.dp),
+                    .height(62.dp),
+                shape  = RoundedCornerShape(16.dp),
                 colors = ButtonDefaults.buttonColors(
-                    containerColor = Color(0xFF1A0040)
+                    containerColor = NeonCyanContainer
                 )
             ) {
                 Text(
-                    text       = "ENTER THE VOID",
-                    color      = PURPLE,
-                    fontSize   = 18.sp,
-                    fontWeight = FontWeight.ExtraBold,
-                    letterSpacing = 2.sp
+                    text          = "ENTER THE VOID",
+                    color         = NeonCyan,
+                    fontSize      = 18.sp,
+                    fontWeight    = FontWeight.Black,
+                    letterSpacing = 3.sp
                 )
             }
 
-            Spacer(Modifier.height(12.dp))
+            Spacer(Modifier.height(14.dp))
 
-            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+            Row(
+                Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(12.dp)
+            ) {
                 OutlinedButton(
                     onClick  = onRunHistory,
-                    modifier = Modifier.weight(1f).height(48.dp),
+                    modifier = Modifier.weight(1f).height(50.dp),
                     shape    = RoundedCornerShape(12.dp),
-                    colors   = ButtonDefaults.outlinedButtonColors(contentColor = CYAN)
-                ) { Text("HISTORY", fontSize = 13.sp, fontWeight = FontWeight.Bold) }
+                    colors   = ButtonDefaults.outlinedButtonColors(contentColor = NeonCyan),
+                    border   = androidx.compose.foundation.BorderStroke(
+                        1.dp, NeonCyan.copy(alpha = 0.4f)
+                    )
+                ) { Text("HISTORY", fontWeight = FontWeight.Bold, letterSpacing = 1.sp) }
 
                 OutlinedButton(
                     onClick  = onSettings,
-                    modifier = Modifier.weight(1f).height(48.dp),
+                    modifier = Modifier.weight(1f).height(50.dp),
                     shape    = RoundedCornerShape(12.dp),
-                    colors   = ButtonDefaults.outlinedButtonColors(contentColor = ORANGE)
-                ) { Text("SETTINGS", fontSize = 13.sp, fontWeight = FontWeight.Bold) }
+                    colors   = ButtonDefaults.outlinedButtonColors(contentColor = TorchAmber),
+                    border   = androidx.compose.foundation.BorderStroke(
+                        1.dp, TorchAmber.copy(alpha = 0.4f)
+                    )
+                ) { Text("SETTINGS", fontWeight = FontWeight.Bold, letterSpacing = 1.sp) }
             }
 
             Spacer(Modifier.height(24.dp))
 
-            // ── Best run line ─────────────────────────────────────────────
             state.bestRun?.let { run ->
                 Text(
-                    "DEEPEST RUN: Depth ${run.depth}  •  Score ${run.score}",
-                    color    = VOID_RED.copy(alpha = 0.6f),
-                    fontSize = 11.sp,
-                    textAlign = TextAlign.Center
+                    "DEEPEST VOID: Depth ${run.depth}  •  Score ${run.score}",
+                    color     = extended.neonPink.copy(alpha = 0.5f),
+                    fontSize  = 11.sp,
+                    textAlign = TextAlign.Center,
+                    letterSpacing = 1.sp
                 )
             }
         }
@@ -171,9 +190,20 @@ fun HomeScreen(
 }
 
 @Composable
-private fun StatItem(label: String, value: String) {
+private fun StatChip(label: String, value: String) {
     Column(horizontalAlignment = Alignment.CenterHorizontally) {
-        Text(value, color = CYAN, fontSize = 18.sp, fontWeight = FontWeight.ExtraBold)
-        Text(label, color = Color(0xFF607D8B), fontSize = 9.sp, letterSpacing = 1.sp)
+        Text(
+            value,
+            color      = NeonCyan,
+            fontSize   = 20.sp,
+            fontWeight = FontWeight.Black
+        )
+        Text(
+            label,
+            color         = TextSecondary,
+            fontSize      = 9.sp,
+            letterSpacing = 1.5.sp,
+            fontWeight    = FontWeight.Medium
+        )
     }
 }
