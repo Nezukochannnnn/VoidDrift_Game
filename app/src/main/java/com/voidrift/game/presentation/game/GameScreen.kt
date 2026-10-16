@@ -16,6 +16,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -200,7 +201,7 @@ private fun GameHudOverlay(
     val hpPct    = (world.player.hp / 100f).coerceIn(0f, 1f)
     val torchPct = (world.player.torchRadius / 300f).coerceIn(0f, 1f)
 
-    Box(modifier = Modifier.fillMaxSize().padding(16.dp)) {
+    Box(modifier = Modifier.fillMaxSize().statusBarsPadding().padding(16.dp)) {
         // Top Bar Row
         Row(
             modifier = Modifier.fillMaxWidth().align(Alignment.TopStart),
