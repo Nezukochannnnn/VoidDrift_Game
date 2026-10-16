@@ -8,7 +8,7 @@ plugins {
 
 android {
     namespace = "com.voidrift.game"
-    compileSdk = 35
+    compileSdk = 37
 
     defaultConfig {
         applicationId = "com.voidrift.game"
@@ -62,6 +62,7 @@ dependencies {
     implementation(libs.androidx.ui.graphics)
     implementation(libs.androidx.ui.tooling.preview)
     implementation(libs.androidx.material3)
+    implementation(libs.androidx.material.icons.core)
     implementation(libs.androidx.navigation.compose)
 
     // Hilt DI

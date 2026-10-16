@@ -42,7 +42,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import com.voidrift.game.data.local.entity.RunRecord
 import com.voidrift.game.ui.theme.CrystalBlue
 import com.voidrift.game.ui.theme.NeonCyan
@@ -184,8 +184,9 @@ private fun EmptyHistoryView() {
 
 @Composable
 private fun RunCard(rank: Int, run: RunRecord) {
-    val date = SimpleDateFormat("MMM d, HH:mm", Locale.getDefault())
-        .format(Date(run.timestamp))
+    val date = remember(run.timestamp) {
+        SimpleDateFormat("MMM d, HH:mm", Locale.getDefault()).format(Date(run.timestamp))
+    }
 
     Card(
         modifier = Modifier

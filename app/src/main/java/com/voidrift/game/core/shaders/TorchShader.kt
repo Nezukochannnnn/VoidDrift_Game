@@ -22,8 +22,15 @@ object TorchShader {
         }
     """
 
+    private var _cachedShader: Any? = null
+
     @RequiresApi(Build.VERSION_CODES.TIRAMISU)
-    fun create(): RuntimeShader = RuntimeShader(AGSL_SOURCE)
+    fun create(): RuntimeShader {
+        if (_cachedShader == null) {
+            _cachedShader = RuntimeShader(AGSL_SOURCE)
+        }
+        return _cachedShader as RuntimeShader
+    }
 
     val isSupported: Boolean
         get() = Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU
@@ -41,3 +48,5 @@ object TorchShader {
         shader.setFloatUniform("time", timeSec)
     }
 }
+
+

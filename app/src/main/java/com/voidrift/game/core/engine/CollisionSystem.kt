@@ -76,7 +76,7 @@ class CollisionSystem @Inject constructor() {
         }
         player = player.copy(hp = hp, bounds = pBox)
 
-        // ── 4. Player vs Crystal tiles ──────────────────────────────────────
+        // ── 4. Player vs Crystal & Void tiles ────────────────────────────────
         val playerGridX = (player.position.x / TILE_SIZE).toInt()
         val playerGridY = (player.position.y / TILE_SIZE).toInt()
         val currentTile = dungeon.tileAt(playerGridX, playerGridY)
@@ -86,6 +86,13 @@ class CollisionSystem @Inject constructor() {
                 currentTile.copy(type = TileType.FLOOR, hasItem = false)
             )
             score += 500L
+            val refueledTorch = (player.torchRadius + 60f).coerceAtMost(com.voidrift.game.domain.model.Player.INITIAL_TORCH_RADIUS)
+            player = player.copy(torchRadius = refueledTorch)
+        } else if (currentTile != null && (currentTile.type == TileType.VOID || currentTile.voidProgress > 0.6f)) {
+            // Stand on void corruption damage
+            val voidHp = (player.hp - 1).coerceAtLeast(0)
+            val voidTorch = (player.torchRadius - 0.5f).coerceAtLeast(0f)
+            player = player.copy(hp = voidHp, torchRadius = voidTorch)
         }
 
         // ── 5. Player vs Exit tile ──────────────────────────────────────────

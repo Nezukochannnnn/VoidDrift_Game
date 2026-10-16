@@ -19,9 +19,9 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.KeyboardArrowLeft
+import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
 import androidx.compose.material.icons.filled.KeyboardArrowDown
-import androidx.compose.material.icons.filled.KeyboardArrowLeft
-import androidx.compose.material.icons.filled.KeyboardArrowRight
 import androidx.compose.material.icons.filled.KeyboardArrowUp
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
@@ -33,6 +33,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableLongStateOf
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -42,9 +43,10 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import com.voidrift.game.core.math.Vector2D
 import com.voidrift.game.domain.model.GameWorld
 import com.voidrift.game.presentation.game.renderer.DungeonRenderer.drawDungeon
@@ -75,7 +77,7 @@ fun GameScreen(
     val world   by viewModel.world.collectAsState()
 
     val floatingScores = remember { mutableStateListOf<FloatingScoreText>() }
-    var prevScore by remember { androidx.compose.runtime.mutableLongStateOf(0L) }
+    var prevScore by remember { mutableLongStateOf(0L) }
 
     LaunchedEffect(world.score) {
         if (prevScore > 0L && world.score > prevScore) {
@@ -106,15 +108,14 @@ fun GameScreen(
 
             is GameUiState.Playing, is GameUiState.Paused -> {
                 // ── Pure Canvas Game Area (Layers 1 to 5) ─────────────────────
-                // Using graphicsLayer(alpha = 0.99f) to force offscreen compositing for Torch Mask BlendMode
                 Canvas(
                     modifier = Modifier
                         .fillMaxSize()
                         .graphicsLayer(alpha = 0.99f)
                         .pointerInput(Unit) {
                             detectDragGestures { _, dragAmount ->
-                                viewModel.onMove(
-                                    Vector2D(dragAmount.x / 200f, dragAmount.y / 200f)
+                                viewModel.onDrag(
+                                    Vector2D(dragAmount.x, dragAmount.y)
                                 )
                             }
                         }
@@ -154,7 +155,7 @@ fun GameScreen(
                         fontWeight = FontWeight.Black,
                         modifier = Modifier
                             .align(Alignment.Center)
-                            .offset(y = fs.offsetY.value.dp)
+                            .offset { IntOffset(0, fs.offsetY.value.dp.roundToPx()) }
                     )
                 }
 
@@ -206,7 +207,7 @@ private fun GameHudOverlay(
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically
         ) {
-            // Top-left: HP bar (red, 4dp height rounded)
+            // Top-left: HP bar
             Column {
                 Text("HP", color = NeonPink, fontSize = 10.sp, fontWeight = FontWeight.Bold)
                 Spacer(Modifier.height(2.dp))
@@ -225,16 +226,27 @@ private fun GameHudOverlay(
                 }
             }
 
-            // Top-center: Depth indicator "DEPTH 3"
-            Text(
-                text = "DEPTH ${world.runDepth}",
-                color = TextPrimary,
-                fontSize = 16.sp,
-                fontWeight = FontWeight.Black,
-                letterSpacing = 2.sp
-            )
+            // Top-center: Depth indicator "DEPTH 3" + Pause
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Text(
+                    text = "DEPTH ${world.runDepth}",
+                    color = TextPrimary,
+                    fontSize = 16.sp,
+                    fontWeight = FontWeight.Black,
+                    letterSpacing = 2.sp
+                )
+                Spacer(Modifier.width(12.dp))
+                Button(
+                    onClick = onPause,
+                    shape = RoundedCornerShape(8.dp),
+                    colors = ButtonDefaults.buttonColors(containerColor = Color(0x661A0030)),
+                    modifier = Modifier.height(32.dp)
+                ) {
+                    Text("PAUSE", color = NeonCyan, fontSize = 10.sp, fontWeight = FontWeight.Bold)
+                }
+            }
 
-            // Top-right: Torch meter (amber gradient bar, pulses red when below 20%)
+            // Top-right: Torch meter
             Column(horizontalAlignment = Alignment.End) {
                 Text("TORCH", color = TorchAmber, fontSize = 10.sp, fontWeight = FontWeight.Bold)
                 Spacer(Modifier.height(2.dp))
@@ -255,7 +267,7 @@ private fun GameHudOverlay(
             }
         }
 
-        // Bottom-center: D-pad style touch controls (4 directional buttons, semi-transparent)
+        // Bottom-center: D-pad style touch controls
         Box(
             modifier = Modifier
                 .align(Alignment.BottomCenter)
@@ -275,7 +287,7 @@ private fun GameHudOverlay(
                         colors = IconButtonDefaults.iconButtonColors(containerColor = Color(0x661A0030)),
                         modifier = Modifier.size(48.dp)
                     ) {
-                        Icon(Icons.Filled.KeyboardArrowLeft, contentDescription = "Left", tint = NeonCyan)
+                        Icon(Icons.AutoMirrored.Filled.KeyboardArrowLeft, contentDescription = "Left", tint = NeonCyan)
                     }
                     Spacer(Modifier.width(48.dp))
                     IconButton(
@@ -283,7 +295,7 @@ private fun GameHudOverlay(
                         colors = IconButtonDefaults.iconButtonColors(containerColor = Color(0x661A0030)),
                         modifier = Modifier.size(48.dp)
                     ) {
-                        Icon(Icons.Filled.KeyboardArrowRight, contentDescription = "Right", tint = NeonCyan)
+                        Icon(Icons.AutoMirrored.Filled.KeyboardArrowRight, contentDescription = "Right", tint = NeonCyan)
                     }
                 }
                 IconButton(

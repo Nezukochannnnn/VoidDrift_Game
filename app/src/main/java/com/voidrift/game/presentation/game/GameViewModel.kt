@@ -1,14 +1,14 @@
 package com.voidrift.game.presentation.game
 
-import androidx.compose.runtime.withFrameNanos
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.voidrift.game.core.audio.SoundManager
 import com.voidrift.game.core.engine.CollisionSystem
 import com.voidrift.game.core.engine.ParticleSystem
 import com.voidrift.game.core.math.Vector2D
 import com.voidrift.game.domain.model.AiState
-import com.voidrift.game.domain.model.Enemy
 import com.voidrift.game.domain.model.GameWorld
+import com.voidrift.game.domain.model.Player
 import com.voidrift.game.domain.model.TileType
 import com.voidrift.game.domain.usecase.SaveRunRecordUseCase
 import com.voidrift.game.domain.usecase.StartNewRunUseCase
@@ -19,9 +19,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 import javax.inject.Inject
-import kotlin.math.min
 import kotlin.random.Random
 
 @HiltViewModel
@@ -29,7 +27,8 @@ class GameViewModel @Inject constructor(
     private val startNewRunUseCase: StartNewRunUseCase,
     private val saveRunRecordUseCase: SaveRunRecordUseCase,
     private val collisionSystem: CollisionSystem,
-    private val particleSystem: ParticleSystem
+    private val particleSystem: ParticleSystem,
+    private val soundManager: SoundManager
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow<GameUiState>(GameUiState.Idle)
@@ -40,12 +39,14 @@ class GameViewModel @Inject constructor(
 
     private var runStartMs = 0L
     private var currentSeed = 0L
+    private var lastTorchWarningTime = 0L
 
     // ── Public API ────────────────────────────────────────────────────────────
 
     fun startNewRun(depth: Int = 1, seed: Long = Random.nextLong()) {
         currentSeed = seed
         runStartMs = System.currentTimeMillis()
+        lastTorchWarningTime = 0L
         _uiState.value = GameUiState.Loading
         viewModelScope.launch(Dispatchers.Default) {
             val initialWorld = startNewRunUseCase(depth = depth, seed = seed)
@@ -58,9 +59,18 @@ class GameViewModel @Inject constructor(
     fun onMove(delta: Vector2D) {
         if (_uiState.value !is GameUiState.Playing) return
         _world.update { w ->
-            val newVel = delta * 200f
-            val newPos = w.player.position + newVel * 0.016f
+            val impulseSpeed = 260f
+            val newVel = delta.normalized() * impulseSpeed
+            val newPos = w.player.position + delta.normalized() * 16f
             w.copy(player = w.player.copy(position = newPos, velocity = newVel).syncBounds())
+        }
+    }
+
+    fun onDrag(dragOffset: Vector2D) {
+        if (_uiState.value !is GameUiState.Playing) return
+        _world.update { w ->
+            val newPos = w.player.position + dragOffset * 1.2f
+            w.copy(player = w.player.copy(position = newPos, velocity = dragOffset * 8f).syncBounds())
         }
     }
 
@@ -88,9 +98,16 @@ class GameViewModel @Inject constructor(
             lastFrameNanos = frameNanos
             val dt = deltaTime.coerceIn(0f, 0.05f)
 
+            var crystalCollected = false
+            var playerDamaged = false
+
             _world.update { world ->
                 val prevKilled = world.enemies.count { !it.isAlive }
+                val prevScore  = world.score
+                val prevHp     = world.player.hp
+
                 val updatedWorld = world
+                    .tickPlayerMovement(dt)
                     .tickVoidCorruption(dt)
                     .tickTorchDecay(dt)
                     .tickEnemyAI(dt)
@@ -100,10 +117,13 @@ class GameViewModel @Inject constructor(
                     .let { particleSystem.emitTorchEmbers(it) }
                     .checkWinLoss()
                     .copy(elapsedSeconds = world.elapsedSeconds + dt)
-                
+
+                if (updatedWorld.score > prevScore) crystalCollected = true
+                if (updatedWorld.player.hp < prevHp) playerDamaged = true
+
                 val currentKilled = updatedWorld.enemies.count { !it.isAlive }
                 val newKills = currentKilled - prevKilled
-                
+
                 if (newKills > 0) {
                     updatedWorld.copy(
                         killCount = updatedWorld.killCount + newKills,
@@ -111,6 +131,18 @@ class GameViewModel @Inject constructor(
                     )
                 } else {
                     updatedWorld
+                }
+            }
+
+            if (crystalCollected) soundManager.playCrystalPickup()
+            if (playerDamaged) soundManager.playEnemyHit()
+
+            val currentWorld = _world.value
+            if (currentWorld.player.torchRadius < 60f) {
+                val now = System.currentTimeMillis()
+                if (now - lastTorchWarningTime > 3000L) {
+                    lastTorchWarningTime = now
+                    soundManager.playTorchWarning()
                 }
             }
 
@@ -123,6 +155,7 @@ class GameViewModel @Inject constructor(
         val w = _world.value
         when {
             w.isGameOver -> {
+                soundManager.playGameOverSting()
                 val cause = when {
                     w.player.isTorchExtinguished -> "Torch extinguished — darkness consumed you"
                     !w.player.isAlive -> "Slain in the void"
@@ -143,27 +176,57 @@ class GameViewModel @Inject constructor(
     }
 
     override fun onCleared() {
-        super.onCleared()
         _uiState.value = GameUiState.Idle
     }
 }
 
 // ── Inline tick extensions ────────────────────────────────────────────────────
 
+private fun GameWorld.tickPlayerMovement(dt: Float): GameWorld {
+    if (player.velocity.magnitudeSq() <= 0.1f) return this
+    val newPos = player.position + player.velocity * dt
+    val newVel = player.velocity * (1f - 5f * dt).coerceAtLeast(0f)
+    return copy(player = player.copy(position = newPos, velocity = newVel).syncBounds())
+}
+
 private fun GameWorld.tickVoidCorruption(dt: Float): GameWorld {
     val spread = 0.04f * dt
-    val updated = dungeon.tiles.map { tile ->
-        if (tile.type == TileType.WALL || tile.type == TileType.EXIT) return@map tile
-        val pressure = listOf(
-            dungeon.tileAt(tile.gridX - 1, tile.gridY),
-            dungeon.tileAt(tile.gridX + 1, tile.gridY),
-            dungeon.tileAt(tile.gridX, tile.gridY - 1),
-            dungeon.tileAt(tile.gridX, tile.gridY + 1)
-        ).filterNotNull().sumOf { it.voidProgress.toDouble() }.toFloat() * spread
-        val prog = (tile.voidProgress + pressure).coerceIn(0f, 1f)
-        tile.copy(voidProgress = prog, type = if (prog >= 1f) TileType.VOID else tile.type)
+    val tiles = dungeon.tiles
+    val w = dungeon.widthInTiles
+    val h = dungeon.heightInTiles
+    if (w <= 0 || h <= 0) return this
+
+    var modified = false
+    val updated = ArrayList<com.voidrift.game.domain.model.Tile>(tiles.size)
+
+    for (i in tiles.indices) {
+        val tile = tiles[i]
+        if (tile.type == TileType.WALL || tile.type == TileType.EXIT) {
+            updated.add(tile)
+            continue
+        }
+        val x = tile.gridX
+        val y = tile.gridY
+
+        var pSum = 0f
+        if (x > 0) pSum += tiles[y * w + (x - 1)].voidProgress
+        if (x < w - 1) pSum += tiles[y * w + (x + 1)].voidProgress
+        if (y > 0) pSum += tiles[(y - 1) * w + x].voidProgress
+        if (y < h - 1) pSum += tiles[(y + 1) * w + x].voidProgress
+
+        if (pSum > 0f) {
+            val pressure = pSum * spread
+            val prog = (tile.voidProgress + pressure).coerceIn(0f, 1f)
+            if (prog != tile.voidProgress) {
+                modified = true
+                val newType = if (prog >= 1f) TileType.VOID else tile.type
+                updated.add(tile.copy(voidProgress = prog, type = newType))
+                continue
+            }
+        }
+        updated.add(tile)
     }
-    return copy(dungeon = dungeon.copy(tiles = updated))
+    return if (modified) copy(dungeon = dungeon.copy(tiles = updated)) else this
 }
 
 private fun GameWorld.tickTorchDecay(dt: Float): GameWorld =
@@ -198,15 +261,8 @@ private fun GameWorld.checkWinLoss(): GameWorld {
     val pgx = (player.position.x / tileSize).toInt()
     val pgy = (player.position.y / tileSize).toInt()
     val onExit = dungeon.exitTile.first == pgx && dungeon.exitTile.second == pgy
-    val cleared = onExit // Only clear on exit reaching
     return copy(
         isGameOver    = dead,
-        isRoomCleared = cleared && !dead
+        isRoomCleared = onExit && !dead
     )
 }
-
-private fun com.voidrift.game.domain.model.Player.syncBounds() =
-    copy(bounds = bounds.moveTo(position.x, position.y))
-
-private fun Enemy.syncBounds() =
-    copy(bounds = bounds.moveTo(position.x, position.y))
